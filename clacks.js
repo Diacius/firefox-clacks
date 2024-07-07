@@ -12,27 +12,16 @@ browser.webRequest.onHeadersReceived.addListener(
     ["blocking", "responseHeaders"],
 );*/
 "use strict";
-
+let settingIcon = browser.browserAction.setIcon({
+  path: {
+    48: "exclaim_off.png",
+  },
+});
 /*
-This is the page for which we want to rewrite the User-Agent header.
+This is the page for which we want to add the clacks header.
 */
 const targetPage = "*://*/*";
-
-/*
-Set UA string to Opera 12
-*/
-const ua =
-  "Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16";
-
-/*
-Rewrite the User-Agent header to "ua".
-*/
 function rewriteUserAgentHeader(e) {
-  /*for (const header of e.requestHeaders) {
-    if (header.name.toLowerCase() === "user-agent") {
-      header.value = ua;
-    }
-  }*/
   const gnu = {
     name: 'X-Clacks-Overhead',
     value: "GNU Terry Pratchett"
@@ -48,8 +37,33 @@ only for the target page.
 
 Make it "blocking" so we can modify the headers.
 */
+
+//Code to change the icon of the extention
+
 browser.webRequest.onBeforeSendHeaders.addListener(
   rewriteUserAgentHeader,
   { urls: [targetPage] },
   ["blocking", "requestHeaders"],
 );
+function getCurrentURL() {
+  let querying = browser.tabs.query({active: true})
+  return querying.url
+}
+function checkIfClacks(e) {
+  if (e.responseHeaders["x-clacks-overhead"]) {
+    let settingIcon = browser.action.setIcon({
+      path: {
+        48: "exclaim.png",
+        32: "path/to/image32.jpg",
+      },
+    });
+  }
+  }
+// When the server sends a response 
+browser.webRequest.onHeadersReceived.addListener(
+  checkIfClacks,
+  { urls: [getCurrentURL()] },
+  ["blocking", "responseHeaders"],
+);
+
+

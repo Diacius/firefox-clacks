@@ -4,18 +4,16 @@
     "version" : "0.1",
     "description": "Display X-Clacks-Overhead headers, and send GNU Terry Pratchett to websites",
     "icons": {
-        "48": "icon-48.png"
+        "48": "icon48.png"
       },
     "background": 
         {
           "scripts": ["clacks.js"]
         },
-    "content_scripts": [
-    {
-      "matches": ["*://*.mozilla.org/*"],
-      "js": ["clackalert.js"]
-    }
-    ],
+    "browser_action": {
+      "default_icon": "exclaim_off.png",
+      "default_title": "Clacks"
+    },
     "browser_specific_settings": {
     "gecko": {
         "id": "clacks@jacketpotato.uk"
@@ -25,7 +23,7 @@
       "webRequest",
       "webRequestBlocking",
       "<all_urls>",
-      "notifications"
+      "tabs"
     ]
 
 }
