@@ -12,6 +12,7 @@ browser.webRequest.onHeadersReceived.addListener(
     ["blocking", "responseHeaders"],
 );*/
 "use strict";
+var clackPages = [];
 let settingIcon = browser.browserAction.setIcon({
   path: {
     48: "exclaim_off.png",
@@ -50,31 +51,50 @@ async function getCurrentURL() {
 }
 async function checkIfClacks(e) {
   let currURL = await getCurrentURL()
-  console.log(e)
-  console.log(currURL)
+  console.log(JSON.parse(JSON.stringify(e)));
   if (e.url == currURL) {
     // for every item
     for (const item in e.responseHeaders) {
       // check for the clack header
-      if (e.responseHeaders[item].name == ["x-clacks-overhead"]) {
+      if (e.responseHeaders[item].name.toLowerCase() == ["x-clacks-overhead"]) {
         // if present change icon
         var wasClacks = true
+        if (clackPages.indexOf(e.url) == -1) {
+          // add to list of pages with clacks
+          clackPages.push(e.url)
+        }
         console.log("wasclacksinner")
         browser.browserAction.setIcon({
-          path: {
-            48: "exclaim.png",
-          }
+          path: "exclaim_vector.svg"
         });
         
       }
     }
-  }
+  
   console.log("wasclacks" + toString(wasClacks))
-  if (wasClacks == false) {
+  if (wasClacks !== true) {
+    console.log("turned off on" + e.url)
     settingIcon = browser.browserAction.setIcon({
       path: {
         48: "exclaim_off.png",
       },
+    });
+  }
+  }
+}
+async function updateActiveTab(tabs) {
+  var gettingActiveTab = await browser.tabs.query({active: true, currentWindow: true});
+  var currTab = gettingActiveTab[0];
+  if (clackPages.indexOf(currTab.url) == -1) {
+    settingIcon = browser.browserAction.setIcon({
+      path: {
+        48: "exclaim_off.png",
+      },
+    });
+  }
+  else {
+    browser.browserAction.setIcon({
+      path: "exclaim_vector.svg"
     });
   }
 }
@@ -84,5 +104,13 @@ browser.webRequest.onHeadersReceived.addListener(
   { urls: ["*://*/*"] },
   ["blocking", "responseHeaders"],
 );
+// listen to tab URL changes
+browser.tabs.onUpdated.addListener(updateActiveTab);
+
+// listen to tab switching
+browser.tabs.onActivated.addListener(updateActiveTab);
+
+// listen for window switching
+browser.windows.onFocusChanged.addListener(updateActiveTab);
 
 
