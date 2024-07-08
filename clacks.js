@@ -27,7 +27,6 @@ function rewriteUserAgentHeader(e) {
     value: "GNU Terry Pratchett"
     }
     e.requestHeaders.push(gnu);
-    browser.runtime.sendMessage({clacks: true})
   return { requestHeaders: e.requestHeaders };
 }
 
@@ -45,24 +44,44 @@ browser.webRequest.onBeforeSendHeaders.addListener(
   { urls: [targetPage] },
   ["blocking", "requestHeaders"],
 );
-function getCurrentURL() {
-  let querying = browser.tabs.query({active: true})
-  return querying.url
+async function getCurrentURL() {
+  let querying = await browser.tabs.query({active: true})
+  return querying[0].url
 }
-function checkIfClacks(e) {
-  if (e.responseHeaders["x-clacks-overhead"]) {
-    let settingIcon = browser.action.setIcon({
+async function checkIfClacks(e) {
+  let currURL = await getCurrentURL()
+  console.log(e)
+  console.log(currURL)
+  if (e.url == currURL) {
+    // for every item
+    for (const item in e.responseHeaders) {
+      // check for the clack header
+      if (e.responseHeaders[item].name == ["x-clacks-overhead"]) {
+        // if present change icon
+        var wasClacks = true
+        console.log("wasclacksinner")
+        browser.browserAction.setIcon({
+          path: {
+            48: "exclaim.png",
+          }
+        });
+        
+      }
+    }
+  }
+  console.log("wasclacks" + toString(wasClacks))
+  if (wasClacks == false) {
+    settingIcon = browser.browserAction.setIcon({
       path: {
-        48: "exclaim.png",
-        32: "path/to/image32.jpg",
+        48: "exclaim_off.png",
       },
     });
   }
-  }
+}
 // When the server sends a response 
 browser.webRequest.onHeadersReceived.addListener(
   checkIfClacks,
-  { urls: [getCurrentURL()] },
+  { urls: ["*://*/*"] },
   ["blocking", "responseHeaders"],
 );
 
